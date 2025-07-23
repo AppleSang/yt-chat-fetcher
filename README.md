@@ -1,2 +1,18 @@
 # Youtube Chat Fetcher
-**🌟Auto Load Chat Box For Your Stream On Youtube ✔**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Something to fix:
+- Allow "@" In URL
