@@ -46,13 +46,13 @@
 </head>
 <body>
   <div id="msg-container">
-    <div id="msg"></div>
+    <div id="msg">Đang kiểm tra livestream...</div>
     <!-- Example only on error -->
   </div>
   <script>
     const urlParams = new URLSearchParams(location.search);
     let identifier = urlParams.get('id');
-    const intervalSec = 5;
+    const intervalSec = 20;
     const proxy = "https://api.codetabs.com/v1/proxy?quest=";
     const backgrounds = [
       "https://raw.githubusercontent.com/AppleSang/LumboChat-CSS-Youtube/refs/heads/main/asset/Crimson.webp",
@@ -61,84 +61,50 @@
       "https://raw.githubusercontent.com/AppleSang/LumboChat-CSS-Youtube/refs/heads/main/asset/Sunset.webp"
     ];
 
-    // Translation strings
-    const translations = {
-      en: {
-        missingId: '❌ Type Your <a href="https://www.youtube.com/account_advanced" target="_blank">Channel ID</a> Or <a href="https://abc.net" target="_blank">@yourchannel</a>',
-        findingChannel: '🔍 Finding Your Channel...',
-        cannotFind: id => `❌ Cant Found Channel With '${id}'. Please re-check!`,
-        gettingCode: '🟡 Getting Livestream Code...',
-        streamNotFound: sec => `👀 Stream not found, retrying in ${sec} seconds...`,
-        retrying: '🔁 Retrying...'
-      },
-      vi: {
-        missingId: '❌ Nhập <a href="https://www.youtube.com/account_advanced" target="_blank">Channel ID</a> hoặc <a href="https://abc.net" target="_blank">@tênkênhcủabạn</a> Vào URL',
-        findingChannel: '🔍 Đang tìm kênh của bạn...',
-        cannotFind: id => `❌ Không tìm thấy kênh với '${id}'. Vui lòng kiểm tra lại!`,
-        gettingCode: '🟡 Đang lấy mã Livestream...',
-        streamNotFound: sec => `👀 Không tìm thấy stream, sẽ thử lại sau ${sec} giây...`,
-        retrying: '🔁 Đang thử lại...'
-      }
-    };
-
-    let lang = 'en';
-    const msgEl = document.getElementById('msg');
-
     function setRandomBackground(container) {
       const bg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
       container.style.backgroundImage = `url('${bg}')`;
-    }
-
-    function showMsg(textHtml) {
-      const container = document.getElementById('msg-container');
-      msgEl.innerHTML = textHtml;
-      setRandomBackground(container);
     }
 
     function showErrorExampleLoop(container) {
       const example = document.createElement('div');
       example.className = 'example';
       container.appendChild(example);
-      const texts = [
-        'Ví dụ: https://applesang.github.io/yt-chat-fetcher/?id=UCEcZC1dyDrhWueALsmutdHA',
-        'Ví dụ: https://applesang.github.io/yt-chat-fetcher/?id=NotRealSang | Hoặc | https://applesang.github.io/yt-chat-fetcher/?id=@NotRealSang'
-      ];
+      let texts = ['Example: https://applesang.github.io/yt-chat-fetcher/?id=UCEcZC1dyDrhWueALsmutdHA', 'Example: https://applesang.github.io/yt-chat-fetcher/?id=NotRealSang | Or |  https://applesang.github.io/yt-chat-fetcher/?id=@NotRealSang'];
       let index = 0;
       function cycle() {
         example.textContent = texts[index];
+        // show
         example.classList.add('show');
-        setTimeout(() => example.classList.remove('show'), 4000);
-        setTimeout(() => { index = (index + 1) % texts.length; cycle(); }, 5000);
+        // after 4s hide
+        setTimeout(() => {
+          example.classList.remove('show');
+        }, 4000);
+        // after 5s switch text and repeat
+        setTimeout(() => {
+          index = (index + 1) % texts.length;
+          cycle();
+        }, 5000);
       }
+      // slight delay to start
       setTimeout(cycle, 50);
     }
 
-    async function detectLanguage() {
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        const data = await res.json();
-        if (data.country_code === 'VN') lang = 'vi';
-      } catch (e) {
-        console.warn('Language detection failed, default to English');
-      }
-    }
+    (function init() {
+      const container = document.getElementById('msg-container');
+      setRandomBackground(container);
+    })();
 
     // Strip leading '@'
     if (identifier && identifier.startsWith('@')) identifier = identifier.substring(1);
 
-    (async function init() {
-      await detectLanguage();
+    if (!identifier) {
       const container = document.getElementById('msg-container');
+      container.innerHTML = `<div id=\"msg\">❌ Type Your <a href=\"https://www.youtube.com/account_advanced\" target=\"_blank\">Channel ID</a> Or <a href=\"https://abc.net\" target=\"_blank\">@yourchannel</a></div>`;
       setRandomBackground(container);
-
-      if (!identifier) {
-        showMsg(translations[lang].missingId);
-        showErrorExampleLoop(container);
-        throw new Error("Missing 'id' parameter");
-      }
-
-      start();
-    })();
+      showErrorExampleLoop(container);
+      throw new Error("Missing 'id' parameter");
+    }
 
     async function resolveChannelId(id) {
       if (/^UC[0-9A-Za-z_-]{22}$/.test(id)) return id;
@@ -169,15 +135,21 @@
       return null;
     }
 
+    function showMsg(text) {
+      const container = document.getElementById('msg-container');
+      document.getElementById('msg').textContent = text;
+      setRandomBackground(container);
+    }
+
     function startCountdown(chId, sec) {
       let s = sec;
-      showMsg(translations[lang].streamNotFound(s));
+      showMsg(`👀 Stream not found, retrying in  ${s} seconds...`);
       const t = setInterval(async ()=>{
         s--;
-        if (s>0) showMsg(translations[lang].streamNotFound(s));
+        if (s>0) showMsg(`👀 Stream not found, retrying in  ${s} seconds...`);
         else {
           clearInterval(t);
-          showMsg(translations[lang].retrying);
+          showMsg('🔁 Retrying...');
           const vid = await checkLive(chId);
           vid? window.location.href = `https://www.youtube.com/live_chat?is_popout=1&v=${vid}` : startCountdown(chId, intervalSec);
         }
@@ -185,16 +157,17 @@
     }
 
     async function start() {
-      showMsg(translations[lang].findingChannel);
+      showMsg('🔍 Finding Your Channel...');
       const chId = await resolveChannelId(identifier);
-      if (!chId) {
-        showMsg(translations[lang].cannotFind(identifier));
+      if (!chId) { showMsg(`❌ Cant Found Channel With '${identifier}'. Please re-check!`);
         return;
       }
-      showMsg(translations[lang].gettingCode);
+      showMsg('🟡 Getting Livestream Code...');
       const vid = await checkLive(chId);
       vid? window.location.href = `https://www.youtube.com/live_chat?is_popout=1&v=${vid}` : startCountdown(chId, intervalSec);
     }
+
+    start();
   </script>
 </body>
 </html>
