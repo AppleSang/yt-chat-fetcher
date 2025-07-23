@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>YouTube LiveChat Redirect // AppleSang</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background: #f9f9f9;
+      font-family: sans-serif;
+    }
+    #msg {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #000000;
+      padding: 20px;
+      border-radius: 60px 0px 60px 0px;
+      max-width: 80%;
+      text-align: center;
+      background-size: cover;
+      background-position: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="msg">Đang kiểm tra livestream...</div>
+  <script>
+    const urlParams = new URLSearchParams(location.search);
+    const identifier = urlParams.get('id');
+    const intervalSec = 5;
+    const proxy = "https://api.codetabs.com/v1/proxy?quest=";
+
+    const backgrounds = [
+      "https://raw.githubusercontent.com/AppleSang/LumboChat-CSS-Youtube/refs/heads/main/asset/Crimson.webp",
+      "https://raw.githubusercontent.com/AppleSang/LumboChat-CSS-Youtube/refs/heads/main/asset/Jade.webp",
+      "https://raw.githubusercontent.com/AppleSang/LumboChat-CSS-Youtube/refs/heads/main/asset/Honey.webp",
+      "https://raw.githubusercontent.com/AppleSang/LumboChat-CSS-Youtube/refs/heads/main/asset/Sunset.webp"
+    ];
+
+    if (!identifier) {
+      document.getElementById("msg").textContent = "❌ Type Your Channel ID Or @yourchannel";
+      throw new Error("Missing 'id' parameter");
+    }
+
+    async function resolveChannelId(id) {
+      if (/^UC[0-9A-Za-z_-]{22}$/.test(id)) return id;
+
+      const urls = [
+        "https://www.youtube.com/user/" + id,
+        "https://www.youtube.com/c/" + id,
+        "https://www.youtube.com/@" + id
+      ];
+
+      for (const url of urls) {
+        try {
+          const res = await fetch(proxy + encodeURIComponent(url));
+          const html = await res.text();
+          const match = html.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/channel\/(UC[0-9A-Za-z_-]{22})"/);
+          if (match) return match[1];
+        } catch (e) {}
+      }
+
+      return null;
+    }
+
+    async function checkLive(channelId) {
+      try {
+        const res = await fetch(proxy + encodeURIComponent("https://www.youtube.com/channel/" + channelId + "/live"));
+        const html = await res.text();
+        const isLive = html.includes('"isLiveContent":true');
+        if (isLive) {
+          const match = html.match(/"videoId":"([0-9A-Za-z_-]{11})"/);
+          return match ? match[1] : null;
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    function showMsg(text) {
+      const bg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+      const msgEl = document.getElementById("msg");
+      msgEl.textContent = text;
+      msgEl.style.backgroundImage = `url('${bg}')`;
+    }
+
+    function startCountdown(channelId, seconds) {
+      let sec = seconds;
+      showMsg("👀 Stream not found, retrying in  " + sec + " seconds...");
+      const timer = setInterval(async () => {
+        sec--;
+        if (sec > 0) {
+          showMsg("👀 Stream not found, retrying in  " + sec + " seconds...");
+        } else {
+          clearInterval(timer);
+          showMsg("🔁 Retrying...");
+          const videoId = await checkLive(channelId);
+          if (videoId) {
+            window.location.href = "https://www.youtube.com/live_chat?is_popout=1&v=" + videoId;
+          } else {
+            startCountdown(channelId, intervalSec);
+          }
+        }
+      }, 1000);
+    }
+
+    async function start() {
+      showMsg("🔍 Finding Your Channel...");
+      const channelId = await resolveChannelId(identifier);
+      if (!channelId) {
+        showMsg("❌ I think you type wrong '" + identifier + "' to find your channel. Please Re-type!");
+        return;
+      }
+
+      showMsg("🟡 Getting Livestream Code...");
+      const videoId = await checkLive(channelId);
+      if (videoId) {
+        window.location.href = "https://www.youtube.com/live_chat?is_popout=1&v=" + videoId;
+      } else {
+        startCountdown(channelId, intervalSec);
+      }
+    }
+
+    start();
+  </script>
+</body>
+</html>
