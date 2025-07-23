@@ -1,10 +1,12 @@
 <div align="center">
 
-<h1>YouTube Chat Fetcher</h1>
-<h3>Fast – Simple Setup – Reliable</h3>
-<hr style="width:50%; border:1px solid #ccc;"/>
+# YouTube Chat Fetcher
+### Fast – Simple Setup – Reliable
+
+---
 
 </div>
+
 
 <p align="center">
   <s>\-------------------------------------------------------------------------------/</s>
