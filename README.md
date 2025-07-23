@@ -1,10 +1,9 @@
+<div align="center">
 
+<h1>YouTube Chat Fetcher</h1>
+<h3>Fast – Simple Setup – Reliable</h3>
 
-<p align="center">
-  <h1> Youtube Chat Fetcher</h1>
-  <h1>Fast - Simple Setup - Reliable</h1>
-</p>
-
+</div>
 <p align="center">
   <s>\-------------------------------------------------------------------------------/</s>
 </p>
