@@ -110,6 +110,7 @@
       if (/^UC[0-9A-Za-z_-]{22}$/.test(id)) return id;
       const urls = [
         "https://www.youtube.com/user/"+id,
+        "https://www.youtube.com/@"+id,
         "https://www.youtube.com/c/"+id
       ];
       for (const url of urls) {
