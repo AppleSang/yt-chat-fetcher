@@ -1,18 +1,3 @@
 # Youtube Chat Fetcher
+** Fast - Simple Setup - Reliable **
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Something to fix:
-- Allow "@" In URL
