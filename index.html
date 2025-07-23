@@ -46,7 +46,7 @@
 </head>
 <body>
   <div id="msg-container">
-    <div id="msg">Đang kiểm tra livestream...</div>
+    <div id="msg">Checking Status Youtube-Stream ...</div>
     <!-- Example only on error -->
   </div>
   <script>
@@ -100,7 +100,7 @@
 
     if (!identifier) {
       const container = document.getElementById('msg-container');
-      container.innerHTML = `<div id=\"msg\">❌ Type Your <a href=\"https://www.youtube.com/account_advanced\" target=\"_blank\">Channel ID</a> Or <a href=\"https://abc.net\" target=\"_blank\">@yourchannel</a></div>`;
+      container.innerHTML = `<div id=\"msg\">❌ Type Your <a href=\"https://www.youtube.com/account_advanced\" target=\"_blank\">Channel ID</a> Or <a href=\"https://abc.net\" target=\"_blank\">@yourchannel</a> On Url</div>`;
       setRandomBackground(container);
       showErrorExampleLoop(container);
       throw new Error("Missing 'id' parameter");
