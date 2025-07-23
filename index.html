@@ -13,27 +13,47 @@
       background: #f9f9f9;
       font-family: sans-serif;
     }
-    #msg {
-      font-size: 2rem;
-      font-weight: bold;
-      color: #000000;
+    #msg-container {
+      display: inline-block;
       padding: 20px;
-      border-radius: 60px 0px 60px 0px;
+      border-radius: 60px 0 60px 0;
       max-width: 80%;
       text-align: center;
       background-size: cover;
       background-position: center;
     }
+    #msg {
+      font-size: 2rem;
+      font-weight: bold;
+      color: #000;
+      margin: 0;
+    }
+    .example {
+      font-size: 1rem;
+      color: black;
+      margin-top: 10px;
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.5s ease, opacity 0.5s ease;
+    }
+    .example.show {
+      max-height: 2em;
+      opacity: 1;
+      color: black;
+    }
   </style>
 </head>
 <body>
-  <div id="msg">Đang kiểm tra livestream...</div>
+  <div id="msg-container">
+    <div id="msg">Đang kiểm tra livestream...</div>
+    <!-- Example only on error -->
+  </div>
   <script>
     const urlParams = new URLSearchParams(location.search);
-    const identifier = urlParams.get('id');
+    let identifier = urlParams.get('id');
     const intervalSec = 5;
     const proxy = "https://api.codetabs.com/v1/proxy?quest=";
-
     const backgrounds = [
       "https://raw.githubusercontent.com/AppleSang/LumboChat-CSS-Youtube/refs/heads/main/asset/Crimson.webp",
       "https://raw.githubusercontent.com/AppleSang/LumboChat-CSS-Youtube/refs/heads/main/asset/Jade.webp",
@@ -41,87 +61,110 @@
       "https://raw.githubusercontent.com/AppleSang/LumboChat-CSS-Youtube/refs/heads/main/asset/Sunset.webp"
     ];
 
+    function setRandomBackground(container) {
+      const bg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+      container.style.backgroundImage = `url('${bg}')`;
+    }
+
+    function showErrorExampleLoop(container) {
+      const example = document.createElement('div');
+      example.className = 'example';
+      container.appendChild(example);
+      let texts = ['Example: https://applesang.github.io/yt-chat-fetcher/?id=UCEcZC1dyDrhWueALsmutdHA', 'Example: https://applesang.github.io/yt-chat-fetcher/?id=NotRealSang | Or |  https://applesang.github.io/yt-chat-fetcher/?id=@NotRealSang'];
+      let index = 0;
+      function cycle() {
+        example.textContent = texts[index];
+        // show
+        example.classList.add('show');
+        // after 4s hide
+        setTimeout(() => {
+          example.classList.remove('show');
+        }, 4000);
+        // after 5s switch text and repeat
+        setTimeout(() => {
+          index = (index + 1) % texts.length;
+          cycle();
+        }, 5000);
+      }
+      // slight delay to start
+      setTimeout(cycle, 50);
+    }
+
+    (function init() {
+      const container = document.getElementById('msg-container');
+      setRandomBackground(container);
+    })();
+
+    // Strip leading '@'
+    if (identifier && identifier.startsWith('@')) identifier = identifier.substring(1);
+
     if (!identifier) {
-      document.getElementById("msg").textContent = "❌ Type Your Channel ID Or @yourchannel";
+      const container = document.getElementById('msg-container');
+      container.innerHTML = `<div id=\"msg\">❌ Type Your <a href=\"https://www.youtube.com/account_advanced\" target=\"_blank\">Channel ID</a> Or <a href=\"https://abc.net\" target=\"_blank\">@yourchannel</a></div>`;
+      setRandomBackground(container);
+      showErrorExampleLoop(container);
       throw new Error("Missing 'id' parameter");
     }
 
     async function resolveChannelId(id) {
       if (/^UC[0-9A-Za-z_-]{22}$/.test(id)) return id;
-
       const urls = [
-        "https://www.youtube.com/user/" + id,
-        "https://www.youtube.com/c/" + id,
-        "https://www.youtube.com/@" + id
+        "https://www.youtube.com/user/"+id,
+        "https://www.youtube.com/c/"+id
       ];
-
       for (const url of urls) {
         try {
           const res = await fetch(proxy + encodeURIComponent(url));
           const html = await res.text();
-          const match = html.match(/<link rel="canonical" href="https:\/\/www\.youtube\.com\/channel\/(UC[0-9A-Za-z_-]{22})"/);
+          const match = html.match(/rel=\"canonical\" href=\"https:\/\/www\.youtube\.com\/channel\/(UC[\w-]{22})\"/);
           if (match) return match[1];
-        } catch (e) {}
+        } catch(e){}
       }
-
       return null;
     }
 
     async function checkLive(channelId) {
       try {
-        const res = await fetch(proxy + encodeURIComponent("https://www.youtube.com/channel/" + channelId + "/live"));
+        const res = await fetch(proxy + encodeURIComponent(`https://www.youtube.com/channel/${channelId}/live`));
         const html = await res.text();
-        const isLive = html.includes('"isLiveContent":true');
-        if (isLive) {
-          const match = html.match(/"videoId":"([0-9A-Za-z_-]{11})"/);
-          return match ? match[1] : null;
+        if (html.includes('"isLiveContent":true')) {
+          const m = html.match(/"videoId":"([\w-]{11})"/);
+          if (m) return m[1];
         }
-      } catch (e) {}
+      } catch(e){}
       return null;
     }
 
     function showMsg(text) {
-      const bg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
-      const msgEl = document.getElementById("msg");
-      msgEl.textContent = text;
-      msgEl.style.backgroundImage = `url('${bg}')`;
+      const container = document.getElementById('msg-container');
+      document.getElementById('msg').textContent = text;
+      setRandomBackground(container);
     }
 
-    function startCountdown(channelId, seconds) {
-      let sec = seconds;
-      showMsg("👀 Stream not found, retrying in  " + sec + " seconds...");
-      const timer = setInterval(async () => {
-        sec--;
-        if (sec > 0) {
-          showMsg("👀 Stream not found, retrying in  " + sec + " seconds...");
-        } else {
-          clearInterval(timer);
-          showMsg("🔁 Retrying...");
-          const videoId = await checkLive(channelId);
-          if (videoId) {
-            window.location.href = "https://www.youtube.com/live_chat?is_popout=1&v=" + videoId;
-          } else {
-            startCountdown(channelId, intervalSec);
-          }
+    function startCountdown(chId, sec) {
+      let s = sec;
+      showMsg(`👀 Stream not found, retrying in  ${s} seconds...`);
+      const t = setInterval(async ()=>{
+        s--;
+        if (s>0) showMsg(`👀 Stream not found, retrying in  ${s} seconds...`);
+        else {
+          clearInterval(t);
+          showMsg('🔁 Retrying...');
+          const vid = await checkLive(chId);
+          vid? window.location.href = `https://www.youtube.com/live_chat?is_popout=1&v=${vid}` : startCountdown(chId, intervalSec);
         }
-      }, 1000);
+      },1000);
     }
 
     async function start() {
-      showMsg("🔍 Finding Your Channel...");
-      const channelId = await resolveChannelId(identifier);
-      if (!channelId) {
-        showMsg("❌ I think you type wrong '" + identifier + "' to find your channel. Please Re-type!");
+      showMsg('🔍 Finding Your Channel...');
+      const chId = await resolveChannelId(identifier);
+      if (!chId) { showMsg(`❌ Cant Found Channel With '${identifier}'. Please re-check!`);
         return;
       }
-
-      showMsg("🟡 Getting Livestream Code...");
-      const videoId = await checkLive(channelId);
-      if (videoId) {
-        window.location.href = "https://www.youtube.com/live_chat?is_popout=1&v=" + videoId;
-      } else {
-        startCountdown(channelId, intervalSec);
-      }
+      showMsg('🟡 Getting Livestream Code...');
+      const vid = await checkLive(chId);
+      vid? window.location.href = `https://www.youtube.com/live_chat?is_popout=1&v=${vid}` : startCountdown(chId, intervalSec);
     }
 
     start();
