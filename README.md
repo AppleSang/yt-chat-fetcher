@@ -17,8 +17,9 @@
 - Still Compatible Any CSS Code
 
 ## How to setup:
+<div align="center">
 <iframe width="560" height="315" src="https://www.youtube.com/embed/-6NTKx266-Q?si=m1N3_iYZJmQcDOrN" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
+</div>
 
 ## How to setup but detailed:
 ### Step 1: Open This URL:  [https://applesang.github.io/yt-chat-fetcher/?id=](https://applesang.github.io/yt-chat-fetcher/?id=)@yourchannel  
