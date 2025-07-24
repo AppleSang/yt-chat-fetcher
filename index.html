@@ -70,7 +70,7 @@
       const example = document.createElement('div');
       example.className = 'example';
       container.appendChild(example);
-      let texts = ['Example: https://applesang.github.io/yt-chat-fetcher/?id=UCEcZC1dyDrhWueALsmutdHA', 'Example: https://applesang.github.io/yt-chat-fetcher/?id=NotRealSang | Or |  https://applesang.github.io/yt-chat-fetcher/?id=@NotRealSang'];
+      let texts = ['Example: https://applesang.github.io/yt-chat-fetcher/?id=UCEcZC1dyDrhWueALsmutdHA', 'Example: https://applesang.github.io/yt-chat-fetcher/?id=NotRealSang'];
       let index = 0;
       function cycle() {
         example.textContent = texts[index];
@@ -100,7 +100,7 @@
 
     if (!identifier) {
       const container = document.getElementById('msg-container');
-      container.innerHTML = `<div id=\"msg\">❌ Type Your <a href=\"https://www.youtube.com/account_advanced\" target=\"_blank\">Channel ID</a> Or <a href=\"https://abc.net\" target=\"_blank\">@yourchannel</a> On URL</div>`;
+      container.innerHTML = `<div id=\"msg\">⚠ Wrong URL! Please Read <a href=\"https://www.youtube.com/account_advanced\" target=\"_blank\">Guide</a> To Setup `;
       setRandomBackground(container);
       showErrorExampleLoop(container);
       throw new Error("Missing 'id' parameter");
@@ -160,7 +160,7 @@
     async function start() {
       showMsg('🔍 Finding Your Channel...');
       const chId = await resolveChannelId(identifier);
-      if (!chId) { showMsg(`❌ Cant Found Channel With '${identifier}'. Please re-check!`);
+      if (!chId) { showMsg(`❌ Can't Found Channel With '${identifier}'. Please re-check!`);
         return;
       }
       showMsg('🟡 Getting Livestream Code...');
