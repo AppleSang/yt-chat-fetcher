@@ -49,7 +49,7 @@
 #
 
 
-> You can open "[Issues](https://github.com/AppleSang/yt-chat-fetcher/issues)" to report bug/error or request new features
+You can open "[Issues](https://github.com/AppleSang/yt-chat-fetcher/issues)" to report bug/error or request new features
 
 
 
