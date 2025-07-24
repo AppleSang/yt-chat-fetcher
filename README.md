@@ -16,7 +16,7 @@
 - Retry To Waiting Find Chat Box
 - Still Compatible Any CSS Code
 
-## How to setup:   <Click this image>
+## How to setup:   | Click this image |
 [![YouTube Video](https://img.youtube.com/vi/-6NTKx266-Q/hqdefault.jpg)](https://www.youtube.com/watch?v=-6NTKx266-Q)
 
 ## How to setup but detailed:
