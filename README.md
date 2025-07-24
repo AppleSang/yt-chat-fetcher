@@ -2,7 +2,7 @@
   <h1 style="font-size:3em;">YouTube Chat Fetcher</h1>
   <p style="font-size:1.2em; margin-top:0.5em;">Fast – Simple Setup – Reliable</p>
 </div>
-  <img width="1208" height="683" alt="Icon-YTFetch_1" src="https://github.com/user-attachments/assets/15444b70-0bea-4452-b90a-ec972d8a8ddc" align="right"/>
+  <img width="128" height="128" alt="Icon-YTFetch_1" src="https://github.com/user-attachments/assets/15444b70-0bea-4452-b90a-ec972d8a8ddc" align="right"/>
 
 
 <p align="center">
