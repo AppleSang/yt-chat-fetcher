@@ -14,7 +14,7 @@
 - Retry To Waiting Find Chat Box
 - Still Compatible Any CSS Code
 
-## Format URL When Using:
+## Something You Know:
 [https://applesang.github.io/yt-chat-fetcher/?id=](https://applesang.github.io/yt-chat-fetcher/?id=)@yourchannel
 ## How to install
 
