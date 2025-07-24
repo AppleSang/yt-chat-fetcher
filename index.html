@@ -70,7 +70,7 @@
       const example = document.createElement('div');
       example.className = 'example';
       container.appendChild(example);
-      let texts = ['Example: https://applesang.github.io/yt-chat-fetcher/?id=UCEcZC1dyDrhWueALsmutdHA', 'Example: https://applesang.github.io/yt-chat-fetcher/?id=NotRealSang'];
+      let texts = ['Example URL: https://applesang.github.io/yt-chat-fetcher/?id=UCEcZC1dyDrhWueALsmutdHA', 'Example URL: https://applesang.github.io/yt-chat-fetcher/?id=NotRealSang'];
       let index = 0;
       function cycle() {
         example.textContent = texts[index];
@@ -100,7 +100,7 @@
 
     if (!identifier) {
       const container = document.getElementById('msg-container');
-      container.innerHTML = `<div id=\"msg\">⚠ Wrong URL! Please Read <a href=\"https://www.youtube.com/account_advanced\" target=\"_blank\">Guide</a> To Setup `;
+      container.innerHTML = `<div id=\"msg\">⚠️ Wrong URL! Please Read <a href=\"https://github.com/AppleSang/yt-chat-fetcher?tab=readme-ov-file#how-to-setup-but-detailed" target=\"_blank\">Guide</a> Again `;
       setRandomBackground(container);
       showErrorExampleLoop(container);
       throw new Error("Missing 'id' parameter");
