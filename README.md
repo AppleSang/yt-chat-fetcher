@@ -15,18 +15,28 @@
 - Still Compatible Any CSS Code
 
 ## How to setup but detailed:
-Step 1: Open This URL [https://applesang.github.io/yt-chat-fetcher/?id=](https://applesang.github.io/yt-chat-fetcher/?id=)@yourchannel
-Step 2: Open [Youtube](https://www.youtube.com/)
-Step 3: Click On Your Avartar
-<img width="732" height="167" alt="a1" src="https://github.com/user-attachments/assets/70c84828-ea46-497e-875f-25c6dfe558aa" />
-Step 4: Click "View your channel"
-<img width="238" height="604" alt="a2" src="https://github.com/user-attachments/assets/be5cdc27-8518-4dc6-8b3a-e77ed46d39c0" />
-Step 5: Copy Part After @ 
-<img width="331" height="44" alt="a3" src="https://github.com/user-attachments/assets/08ebe67b-bbe3-4ef2-a988-d0183d9df67c" />
-Step 6: Paste This Part After "?id="
-<img width="427" height="46" alt="image" src="https://github.com/user-attachments/assets/e41a67c8-2d0b-42ee-a924-c176a96d0a6c" />
-Step 7: Copy All Link And Add Into OBS Via "Browser Source" (Don't Forget Add [CSS](https://chatv2.septapus.com/) Code To Make Your Chat More Clean)
-<Optional> Step 8: You Can Add This URL To "Dock" And Done ✔ ✔
+### Step 1: Open This URL  
+[https://applesang.github.io/yt-chat-fetcher/?id=](https://applesang.github.io/yt-chat-fetcher/?id=)@yourchannel  
+<img src="https://github.com/user-attachments/assets/70c84828-ea46-497e-875f-25c6dfe558aa" width="732" height="167" />
+
+### Step 2: Open [Youtube](https://www.youtube.com/)
+
+### Step 3: Click On Your Avatar  
+<img src="https://github.com/user-attachments/assets/be5cdc27-8518-4dc6-8b3a-e77ed46d39c0" width="238" height="604" />
+
+### Step 4: Click "View your channel"  
+<img src="https://github.com/user-attachments/assets/08ebe67b-bbe3-4ef2-a988-d0183d9df67c" width="331" height="44" />
+
+### Step 5: Copy Part After @  
+<img src="https://github.com/user-attachments/assets/e41a67c8-2d0b-42ee-a924-c176a96d0a6c" width="427" height="46" />
+
+### Step 6: Paste This Part After `?id=`
+
+### Step 7: Copy The Full URL And Add Into OBS As **Browser Source**  
+> 💡 _Don’t forget to add [CSS](https://chatv2.septapus.com/) code to make your chat cleaner._
+
+### *(Optional)* Step 8: Add This URL to OBS **Dock** – Done ✔✔
+
 
 
 
