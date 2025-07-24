@@ -15,7 +15,7 @@
 - Still Compatible Any CSS Code
 
 ## How to setup but detailed:
-### Step 1: Open This URL  [https://applesang.github.io/yt-chat-fetcher/?id=](https://applesang.github.io/yt-chat-fetcher/?id=)@yourchannel  
+### Step 1: Open This URL:  [https://applesang.github.io/yt-chat-fetcher/?id=](https://applesang.github.io/yt-chat-fetcher/?id=)@yourchannel  
 
 
 ### Step 2: Open [Youtube](https://www.youtube.com/)
