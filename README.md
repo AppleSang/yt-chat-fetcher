@@ -15,11 +15,10 @@
 - Still Compatible Any CSS Code
 
 ## How to setup but detailed:
-### Step 1: Open This URL  
-[https://applesang.github.io/yt-chat-fetcher/?id=](https://applesang.github.io/yt-chat-fetcher/?id=)@yourchannel  
+### Step 1: Open This URL  [https://applesang.github.io/yt-chat-fetcher/?id=](https://applesang.github.io/yt-chat-fetcher/?id=)@yourchannel  
 
-### Step 2: Open Youtube  
-[https://www.youtube.com/](https://www.youtube.com/)
+
+### Step 2: Open [Youtube](https://www.youtube.com/)
 
 ### Step 3: Click On Your Avatar  
 <img src="https://github.com/user-attachments/assets/70c84828-ea46-497e-875f-25c6dfe558aa" width="732" height="167" />
