@@ -14,11 +14,10 @@
 - Retry To Waiting Find Chat Box
 - Still Compatible Any CSS Code
 
-
+## Format URL When Using:
+[https://applesang.github.io/yt-chat-fetcher/?id=](https://applesang.github.io/yt-chat-fetcher/?id=)@yourchannel
 ## How to install
-- Step 1: 
-- Step 2: 
-- Step 3: Add This In OBS Via "Browser Source" 🎉
+
 
 
 
