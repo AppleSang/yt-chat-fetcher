@@ -1,6 +1,6 @@
 <div align="center">
   <img width="256" height="256" alt="Icon-YTFetch_1" src="https://github.com/user-attachments/assets/15444b70-0bea-4452-b90a-ec972d8a8ddc" align="right"/>
-  <p style="font-size:60px;">YouTube Chat Fetcher</p>
+  <p style="font-size:44px; font-weight:bold;">YouTube Chat Fetcher</p>
   <p style="font-size:1.2em; margin-top:0.5em;">Fast – Simple Setup – Reliable</p>
 </div>
 
