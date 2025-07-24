@@ -17,21 +17,24 @@
 ## How to setup but detailed:
 ### Step 1: Open This URL  
 [https://applesang.github.io/yt-chat-fetcher/?id=](https://applesang.github.io/yt-chat-fetcher/?id=)@yourchannel  
-<img src="https://github.com/user-attachments/assets/70c84828-ea46-497e-875f-25c6dfe558aa" width="732" height="167" />
 
 ### Step 2: Open Youtube  
 [https://www.youtube.com/](https://www.youtube.com/)
 
 ### Step 3: Click On Your Avatar  
-<img src="https://github.com/user-attachments/assets/be5cdc27-8518-4dc6-8b3a-e77ed46d39c0" width="238" height="604" />
+<img src="https://github.com/user-attachments/assets/70c84828-ea46-497e-875f-25c6dfe558aa" width="732" height="167" />
+
 
 ### Step 4: Click "View your channel"  
-<img src="https://github.com/user-attachments/assets/08ebe67b-bbe3-4ef2-a988-d0183d9df67c" width="331" height="44" />
+<img src="https://github.com/user-attachments/assets/be5cdc27-8518-4dc6-8b3a-e77ed46d39c0" width="238" height="604" />
+
 
 ### Step 5: Copy The Part After `@`  
-<img src="https://github.com/user-attachments/assets/e41a67c8-2d0b-42ee-a924-c176a96d0a6c" width="427" height="46" />
+<img src="https://github.com/user-attachments/assets/08ebe67b-bbe3-4ef2-a988-d0183d9df67c" width="331" height="44" />
+
 
 ### Step 6: Paste This Part After `?id=` In The Link
+<img src="https://github.com/user-attachments/assets/e41a67c8-2d0b-42ee-a924-c176a96d0a6c" width="427" height="46" />
 
 ### Step 7: Copy The Full Link And Add It Into OBS As "Browser Source"  
 > 💡 Don’t forget to add [CSS](https://chatv2.septapus.com/) to make your chat cleaner.
