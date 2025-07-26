@@ -46,7 +46,13 @@
 ### *(Optional)* Step 8: Add This URL To OBS "Dock" – Done ✔✔
 
 
-
+> [!TIP]
+>   <summary>Why does [video guide](https://github.com/AppleSang/yt-chat-fetcher?tab=readme-ov-file#how-to-setup----click-this-image-) have `@` but [text guide](https://github.com/AppleSang/yt-chat-fetcher?tab=readme-ov-file#how-to-setup-but-detailed) doesn't? </summary>
+>  
+> Because I Updated For My Code Can Recognize Your Channel When Have `@` Or Not
+> By the way: My Code Can Find Your Channel By [Channel ID](https://www.youtube.com/account_advanced)
+>  
+> </details>
 
 
 
