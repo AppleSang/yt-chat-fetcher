@@ -46,8 +46,8 @@
 ### *(Optional)* Step 8: Add This URL To OBS "Dock" – Done ✔✔
 
 
+** FAQs **
 > [!TIP]
-> ** FAQs **
 > <details>
 >   <summary>Why does video guide have @ but text guide doesn't? </summary>
 >  
