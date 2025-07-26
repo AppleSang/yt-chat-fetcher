@@ -48,9 +48,9 @@
 
 > [!TIP]
 > <details>
->   <summary>Why does [video guide](https://github.com/AppleSang/yt-chat-fetcher?tab=readme-ov-file#how-to-setup----click-this-image-) have `@` but [text guide](https://github.com/AppleSang/yt-chat-fetcher?tab=readme-ov-file#how-to-setup-but-detailed) doesn't? </summary>
+>   <summary>Why does video guide have @ but text guide doesn't? </summary>
 >  
-> Because I Updated For My Code Can Recognize Your Channel When Have `@` Or Not
+> Because I Updated For My Code Can Recognize Your Channel When Have `@` Or Not.
 > By the way: My Code Can Find Your Channel By [Channel ID](https://www.youtube.com/account_advanced)
 >  
 > </details>
