@@ -47,6 +47,7 @@
 
 
 > [!TIP]
+> ** FAQs **
 > <details>
 >   <summary>Why does video guide have @ but text guide doesn't? </summary>
 >  
