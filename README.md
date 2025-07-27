@@ -17,7 +17,7 @@
 - Still Compatible Any CSS Code
 
 ## How to setup:   | Click this image |
-[![YouTube Video](https://img.youtube.com/vi/-6NTKx266-Q/hqdefault.jpg)](https://www.youtube.com/watch?v=-6NTKx266-Q)
+[![YouTube Video](https://github.com/user-attachments/assets/15444b70-0bea-4452-b90a-ec972d8a8ddc)](https://www.youtube.com/watch?v=-6NTKx266-Q)
 
 ## How to setup but detailed:
 ### Step 1: Open This URL:  [https://applesang.github.io/yt-chat-fetcher/?id=](https://applesang.github.io/yt-chat-fetcher/?id=)@yourchannel  
