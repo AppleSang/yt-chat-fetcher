@@ -8,7 +8,7 @@
     body {
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-end;
       height: 100vh;
       margin: 0;
       background: #f9f9f9;
@@ -22,6 +22,7 @@
       text-align: center;
       background-size: cover;
       background-position: center;
+      margin-bottom: 10px;
     }
     #msg {
       font-size: 2rem;
@@ -52,7 +53,7 @@
   <script>
     const urlParams = new URLSearchParams(location.search);
     let identifier = urlParams.get('id');
-    const intervalSec = 20;
+    const intervalSec = 9;
     const proxy = "https://api.codetabs.com/v1/proxy?quest=";
     const backgrounds = [
       "https://raw.githubusercontent.com/AppleSang/LumboChat-CSS-Youtube/refs/heads/main/asset/Crimson.webp",
