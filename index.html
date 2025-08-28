@@ -55,6 +55,8 @@
     let identifier = urlParams.get('id');
     const intervalSec = 9;
     const proxy = "https://api.codetabs.com/v1/proxy?quest=";
+    const TIMEOUT = 6000; // 10s timeout
+
     const backgrounds = [
       "https://raw.githubusercontent.com/AppleSang/LumboChat-CSS-Youtube/refs/heads/main/asset/Crimson.webp",
       "https://raw.githubusercontent.com/AppleSang/LumboChat-CSS-Youtube/refs/heads/main/asset/Jade.webp",
@@ -71,23 +73,20 @@
       const example = document.createElement('div');
       example.className = 'example';
       container.appendChild(example);
-      let texts = ['Example URL: https://applesang.github.io/yt-chat-fetcher/?id=UCEcZC1dyDrhWueALsmutdHA', 'Example URL: https://applesang.github.io/yt-chat-fetcher/?id=NotRealSang'];
+      let texts = [
+        'Example URL: https://applesang.github.io/yt-chat-fetcher/?id=UCEcZC1dyDrhWueALsmutdHA',
+        'Example URL: https://applesang.github.io/yt-chat-fetcher/?id=NotRealSang'
+      ];
       let index = 0;
       function cycle() {
         example.textContent = texts[index];
-        // show
         example.classList.add('show');
-        // after 4s hide
-        setTimeout(() => {
-          example.classList.remove('show');
-        }, 4000);
-        // after 5s switch text and repeat
+        setTimeout(() => { example.classList.remove('show'); }, 4000);
         setTimeout(() => {
           index = (index + 1) % texts.length;
           cycle();
         }, 5000);
       }
-      // slight delay to start
       setTimeout(cycle, 50);
     }
 
@@ -101,39 +100,53 @@
 
     if (!identifier) {
       const container = document.getElementById('msg-container');
-      container.innerHTML = `<div id=\"msg\">⚠️ Wrong URL! Please Read <a href=\"https://github.com/AppleSang/yt-chat-fetcher?tab=readme-ov-file#how-to-setup-but-detailed" target=\"_blank\">Guide</a> Again `;
+      container.innerHTML = `<div id="msg">⚠️ Wrong URL! Please Read <a href="https://github.com/AppleSang/yt-chat-fetcher?tab=readme-ov-file#how-to-setup-but-detailed" target="_blank">Guide</a> Again `;
       setRandomBackground(container);
       showErrorExampleLoop(container);
       throw new Error("Missing 'id' parameter");
     }
 
+    // helper fetch with timeout
+    async function fetchWithTimeout(url, options = {}, timeout = TIMEOUT) {
+      return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Request Timeout")), timeout)
+        ),
+      ]);
+    }
+
     async function resolveChannelId(id) {
       if (/^UC[0-9A-Za-z_-]{22}$/.test(id)) return id;
       const urls = [
-        "https://www.youtube.com/user/"+id,
-        "https://www.youtube.com/@"+id,
-        "https://www.youtube.com/c/"+id
+        "https://www.youtube.com/user/" + id,
+        "https://www.youtube.com/@" + id,
+        "https://www.youtube.com/c/" + id
       ];
       for (const url of urls) {
         try {
-          const res = await fetch(proxy + encodeURIComponent(url));
+          const res = await fetchWithTimeout(proxy + encodeURIComponent(url));
           const html = await res.text();
           const match = html.match(/rel=\"canonical\" href=\"https:\/\/www\.youtube\.com\/channel\/(UC[\w-]{22})\"/);
           if (match) return match[1];
-        } catch(e){}
+        } catch (e) {
+          console.warn("resolveChannelId error:", e.message, "retrying...");
+        }
       }
       return null;
     }
 
     async function checkLive(channelId) {
       try {
-        const res = await fetch(proxy + encodeURIComponent(`https://www.youtube.com/channel/${channelId}/live`));
+        const res = await fetchWithTimeout(proxy + encodeURIComponent(`https://www.youtube.com/channel/${channelId}/live`));
         const html = await res.text();
         if (html.includes('"isLiveContent":true')) {
           const m = html.match(/"videoId":"([\w-]{11})"/);
           if (m) return m[1];
         }
-      } catch(e){}
+      } catch (e) {
+        console.warn("checkLive error:", e.message, "retrying...");
+      }
       return null;
     }
 
@@ -159,14 +172,22 @@
     }
 
     async function start() {
-      showMsg('🔍 Finding Your Channel...');
-      const chId = await resolveChannelId(identifier);
-      if (!chId) { showMsg(`❌ Can't Found Channel With '${identifier}'. Please re-check!`);
-        return;
+      try {
+        showMsg('🔍 Finding Your Channel...');
+        const chId = await resolveChannelId(identifier);
+        if (!chId) {
+          showMsg(`❌ Can't Found Channel With '${identifier}'. Please re-check!`);
+          return;
+        }
+        showMsg('🟡 Getting Livestream Code...');
+        const vid = await checkLive(chId);
+        vid
+          ? (window.location.href = `https://www.youtube.com/live_chat?is_popout=1&v=${vid}`)
+          : startCountdown(chId, intervalSec);
+      } catch (e) {
+        console.warn("start error:", e.message, "retrying in 10s...");
+        setTimeout(start, TIMEOUT);
       }
-      showMsg('🟡 Getting Livestream Code...');
-      const vid = await checkLive(chId);
-      vid? window.location.href = `https://www.youtube.com/live_chat?is_popout=1&v=${vid}` : startCountdown(chId, intervalSec);
     }
 
     start();
