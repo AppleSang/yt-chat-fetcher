@@ -7,7 +7,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <style>
     :root { --avatar-size: 140px; }
-    html,body{ height:100%; margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:#f9f9f9; }
+    html,body{ height:100%; margin:0; font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background-color: transparent; }
 
     .stage { height:100%; display:flex; align-items:flex-end; justify-content:center; padding-bottom:20px; box-sizing:border-box; }
 
@@ -83,7 +83,7 @@
     const urlParams = new URLSearchParams(location.search);
     let identifier = urlParams.get('id');
     const intervalSec = 9;
-    const proxy = "https://cors-proxy-gray.vercel.app/?url=";
+    const proxy = "https://api.codetabs.com/v1/proxy/?quest=";
     const TIMEOUT = 12000;
 
     const backgrounds = [
