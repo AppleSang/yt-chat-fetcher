@@ -138,18 +138,30 @@
     }
 
     async function checkLive(channelId){
-      try {
-        const res = await fetchWithTimeout(proxy + encodeURIComponent(`https://www.youtube.com/channel/${channelId}/live`));
-        const html = await res.text();
-        if (html.includes('"isLiveContent":true')) {
-          const m = html.match(/"videoId":"([\w-]{11})"/);
-          if (m) return m[1];
-        }
-      } catch (e) {
-        console.warn("checkLive error:", e.message);
-      }
-      return null;
+  try {
+    const liveUrl = `https://www.youtube.com/channel/${channelId}/live`;
+
+    const res = await fetchWithTimeout(
+      proxy + encodeURIComponent(liveUrl)
+    );
+
+    const html = await res.text();
+
+    // tìm URL canonical của trang hiện tại
+    const canonical = html.match(
+      /<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([\w-]{11})"/i
+    );
+
+    if (canonical) {
+      return canonical[1];
     }
+
+  } catch (e) {
+    console.warn("checkLive error:", e.message);
+  }
+
+  return null;
+}
 
     // parse avatar từ channel page
     async function fetchChannelAvatar(channelId){
