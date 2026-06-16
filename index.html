@@ -139,21 +139,43 @@
 
     async function checkLive(channelId){
   try {
-    const liveUrl = `https://www.youtube.com/channel/${channelId}/live`;
-
-    const res = await fetchWithTimeout(
-      proxy + encodeURIComponent(liveUrl)
+    // ===== Bước 1: kiểm tra /live =====
+    const liveRes = await fetchWithTimeout(
+      proxy + encodeURIComponent(
+        `https://www.youtube.com/channel/${channelId}/live`
+      )
     );
 
-    const html = await res.text();
+    const liveHtml = await liveRes.text();
 
-    // tìm URL canonical của trang hiện tại
-    const canonical = html.match(
-      /<link rel="canonical" href="https:\/\/www\.youtube\.com\/watch\?v=([\w-]{11})"/i
+    const canonical = liveHtml.match(
+      /<link\s+rel=["']canonical["']\s+href=["']https:\/\/www\.youtube\.com\/watch\?v=([\w-]{11})["']/i
     );
 
-    if (canonical) {
+    if (
+      canonical &&
+      liveHtml.includes('"isLiveContent":true')
+    ) {
+      console.log("Live detected via /live");
       return canonical[1];
+    }
+
+    // ===== Bước 2: fallback sang /streams =====
+    const streamsRes = await fetchWithTimeout(
+      proxy + encodeURIComponent(
+        `https://www.youtube.com/channel/${channelId}/streams`
+      )
+    );
+
+    const streamsHtml = await streamsRes.text();
+
+    const liveMatch = streamsHtml.match(
+      /"videoId":"([\w-]{11})".+?"badgeRenderer":\{"label":"LIVE NOW"/s
+    );
+
+    if (liveMatch) {
+      console.log("Live detected via /streams");
+      return liveMatch[1];
     }
 
   } catch (e) {
@@ -162,7 +184,6 @@
 
   return null;
 }
-
     // parse avatar từ channel page
     async function fetchChannelAvatar(channelId){
       try {
