@@ -14,7 +14,7 @@
     #msg-container {
       position: relative;
       display: inline-block;
-      padding: 24px 24px 20px 24px;
+      padding: 28px 24px 20px 24px;
       border-radius: 60px 0 60px 0;
       max-width: 80%;
       text-align: center;
@@ -67,15 +67,13 @@
   </style>
 </head>
 <body>
-  <!-- Avatar fixed giữa trang -->
   <div id="avatar-fixed" class="avatar-fixed" aria-hidden="true">
-    <img id="avatar-img" src="" alt="Channel avatar">
+    <img id="avatar-img" src="https://raw.githubusercontent.com/AppleSang/yt-chat-fetcher/refs/heads/main/Icon-YTFetch_1_Resize.png" alt="Channel avatar">
   </div>
 
   <div class="stage">
     <div id="msg-container">
       <div id="msg">Checking Status Youtube-Stream ...</div>
-      <!-- .example sẽ được chèn động giống bản gốc -->
     </div>
   </div>
 
@@ -97,7 +95,7 @@
       const bg = backgrounds[Math.floor(Math.random()*backgrounds.length)];
       container.style.backgroundImage = `url('${bg}')`;
       container.style.backgroundRepeat = 'no-repeat';
-      container.style.backgroundSize = 'cover';       // tránh repeat theo cả chiều rộng + cao
+      container.style.backgroundSize = 'cover';       
       container.style.backgroundPosition = 'center';
     }
 
@@ -105,10 +103,8 @@
       setRandomBackground(document.getElementById('msg-container'));
     })();
 
-    // nếu có @ ở đầu thì bỏ
     if (identifier && identifier.startsWith('@')) identifier = identifier.substring(1);
 
-    // fetch with timeout helper
     async function fetchWithTimeout(url, options = {}, timeout = TIMEOUT){
       return Promise.race([
         fetch(url, options),
@@ -137,13 +133,34 @@
       return null;
     }
 
+    // SỬA ĐỔI CHÍNH Ở ĐÂY: Hàm checkLive tối ưu để lấy ID video khi bị redirect
     async function checkLive(channelId){
       try {
-        const res = await fetchWithTimeout(proxy + encodeURIComponent(`https://www.youtube.com/channel/${channelId}/streams`));
+        const targetUrl = `https://www.youtube.com/channel/${channelId}/live`;
+        const res = await fetchWithTimeout(proxy + encodeURIComponent(targetUrl));
+        
+        // 1. Kiểm tra xem proxy có trả về URL đã bị chuyển hướng trong `res.url` không
+        if (res.url && res.url.includes('watch?v=')) {
+          const urlObj = new URL(res.url);
+          const vid = urlObj.searchParams.get('v');
+          if (vid) return vid;
+        }
+
         const html = await res.text();
-        if (html.includes('"isLiveContent":true')) {
-          const m = html.match(/"videoId":"([\w-]{11})"/);
-          if (m) return m[1];
+
+        // 2. Nếu không có ở URL, tìm thẻ canonical trong HTML (YouTube luôn cập nhật link chuẩn watch?v= tại đây khi redirect)
+        const canonicalMatch = html.match(/<link\s+rel=["']canonical["']\s+href=["']https:\/\/www\.youtube\.com\/watch\?v=([\w-]{11})["']/i);
+        if (canonicalMatch && canonicalMatch[1]) {
+          return canonicalMatch[1];
+        }
+
+        // 3. Dự phòng bằng regex cũ của bạn nhưng quét rộng hơn
+        const videoIdMatch = html.match(/"videoId"\s*:\s*"([\w-]{11})"/);
+        if (videoIdMatch && videoIdMatch[1]) {
+          // Đảm bảo đây đúng là nội dung đang phát trực tiếp hoặc có live chat
+          if (html.includes('"isLiveContent":true') || html.includes('liveChatRenderer')) {
+            return videoIdMatch[1];
+          }
         }
       } catch (e) {
         console.warn("checkLive error:", e.message);
@@ -151,7 +168,6 @@
       return null;
     }
 
-    // parse avatar từ channel page
     async function fetchChannelAvatar(channelId){
       try {
         const res = await fetchWithTimeout(proxy + encodeURIComponent(`https://www.youtube.com/channel/${channelId}`));
@@ -195,7 +211,6 @@
       if (el) el.textContent = text;
     }
 
-    // show example loop giống original (chỉ tạo nếu chưa tồn tại)
     function showErrorExampleLoop(container){
       if (container.querySelector('.example')) return;
       const example = document.createElement('div');
@@ -238,16 +253,14 @@
       }, 1000);
     }
 
-    // KHỞI ĐỘNG chính
     async function start(){
       try {
-        // Nếu không có identifier: hiển thị đúng thông báo của file gốc và vòng example, rồi dừng.
         if (!identifier) {
           const container = document.getElementById('msg-container');
           container.innerHTML = `<div id="msg">⚠️ Wrong URL! Please Read <a href="https://github.com/AppleSang/yt-chat-fetcher?tab=readme-ov-file#how-to-setup-but-detailed" target="_blank">Guide</a> Again `;
           setRandomBackground(container);
           showErrorExampleLoop(container);
-          return; // dừng flow ở đây
+          return;
         }
 
         updateMsg('🔍 Finding Your Channel...');
@@ -259,7 +272,6 @@
           return;
         }
 
-        // lấy avatar và hiển thị fixed giữa trang (không show "Loading channel avatar..")
         const avatarUrl = await fetchChannelAvatar(chId);
         if (avatarUrl) showAvatarFixed(avatarUrl, true);
         else showAvatarFixed(null);
@@ -279,7 +291,6 @@
       }
     }
 
-    // gọi start
     start();
   </script>
 </body>
