@@ -141,7 +141,7 @@
       try {
         const res = await fetchWithTimeout(proxy + encodeURIComponent(`https://www.youtube.com/channel/${channelId}/live`));
         const html = await res.text();
-        if (html.includes('"isLiveContent":true')) {
+        if (html.includes('"isLive":true')) {
           const m = html.match(/"videoId":"([\w-]{11})"/);
           if (m) return m[1];
         }
