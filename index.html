@@ -135,24 +135,33 @@
       return null;
     }
 
-    // Hàm lấy mã HTML raw và lọc videoId dựa trên API của nút Like nhằm đảm bảo độ chính xác
+    // 🛠️ HÀM CHECK LIVE KIỂM TRA PHẢI CÓ "isLive":true THÌ MỚI ĐẨY ĐI
     async function checkLive(channelId){
       try {
         const targetUrl = `https://www.youtube.com/channel/${channelId}/live`;
+        // Lấy mã HTML thô hoàn toàn từ proxy Vercel
         const res = await fetchWithTimeout(proxy + encodeURIComponent(targetUrl) + "&raw=true");
         
         if (res.status === 301 || res.status === 302 || res.status === 404) return null;
 
         const htmlContent = await res.text();
 
-        // Khóa chặt bằng Regex lọc theo hành động /like/like
+        // 1. KIỂM TRA ĐIỀU KIỆN TIÊN QUYẾT: Dữ liệu raw bắt buộc phải chứa dấu hiệu đang Live
+        const hasLiveSignal = htmlContent.includes('"isLive":true') || htmlContent.includes('"isLiveStream":true') || htmlContent.includes('iconType":"LIVE"');
+        
+        if (!hasLiveSignal) {
+          return null; // Trả về null ngay nếu kiểm tra thấy đang Offline (isLive = false)
+        }
+
+        // 2. NẾU ĐANG LIVE (TRUE): Thực hiện quét bóc tách lấy videoId tương ứng
+        // Quét dựa trên API của nút Like (như bạn yêu cầu)
         const likeRegex = /"apiUrl"\s*:\s*"\/youtubei\/v1\/like\/like".*?"videoId"\s*:\s*"([\w-]{11})"/s;
         const match = htmlContent.match(likeRegex);
         if (match && match[1]) {
           return match[1]; 
         }
 
-        // Dự phòng: Tìm kiếm watchEndpoint gốc của YouTube Live
+        // Dự phòng: Quét watchEndpoint phòng live chính thức
         const ytCommandMatch = htmlContent.match(/"watchEndpoint"\s*:\s*\{\s*"videoId"\s*:\s*"([\w-]{11})"/);
         if (ytCommandMatch && ytCommandMatch[1]) {
           return ytCommandMatch[1];
@@ -248,12 +257,12 @@
           updateMsg('🔁 Retrying...');
           const vid = await checkLive(chId);
           
-          // 🔥 ĐIỀU KIỆN KHÓA CHẶT: Chỉ khi vid tồn tại (đang live thực sự) mới chuyển hướng đẩy sang chat
+          // Chỉ đẩy đi khi tìm thấy videoId từ luồng phát trực tiếp thật sự
           if (vid && vid.length === 11) {
             showAvatarFixed(null, false);
             window.location.href = `https://www.youtube.com/live_chat?is_popout=1&v=${vid}`;
           } else {
-            // Ngược lại nếu hàm checkLive trả về null (Offline), tiếp tục vòng lặp đếm ngược
+            // Nếu không phát trực tiếp, kích hoạt lại vòng lặp chờ 9 giây tiếp theo
             startCountdown(chId, intervalSec);
           }
         }
@@ -286,12 +295,12 @@
         updateMsg('🟡 Getting Livestream Code...');
         const vid = await checkLive(chId);
         
-        // 🔥 ĐIỀU KIỆN KHÓA CHẶT: Chỉ khi vid tồn tại (đang live thực sự) mới chuyển hướng đẩy sang chat
+        // Chỉ đẩy đi khi tìm thấy videoId từ luồng phát trực tiếp thật sự
         if (vid && vid.length === 11) {
           showAvatarFixed(null, false);
           window.location.href = `https://www.youtube.com/live_chat?is_popout=1&v=${vid}`;
         } else {
-          // Nếu không tìm thấy luồng Live hợp lệ (Trả về null), bắt đầu kích hoạt chế độ đếm ngược chờ đợi
+          // Kích hoạt bộ đếm ngược 9 giây thử lại nếu kênh đang offline
           startCountdown(chId, intervalSec);
         }
       } catch (e) {
