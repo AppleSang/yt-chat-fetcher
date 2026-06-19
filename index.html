@@ -67,15 +67,13 @@
   </style>
 </head>
 <body>
-  <!-- Avatar fixed giữa trang -->
   <div id="avatar-fixed" class="avatar-fixed" aria-hidden="true">
-    <img id="avatar-img" src="https://raw.githubusercontent.com/AppleSang/yt-chat-fetcher/refs/heads/main/Icon-YTFetch_1_Resize.png" alt="">
+    <img id="avatar-img" src="" alt="Channel avatar">
   </div>
 
   <div class="stage">
     <div id="msg-container">
       <div id="msg">Checking Status Youtube-Stream ...</div>
-      <!-- .example sẽ được chèn động giống bản gốc -->
     </div>
   </div>
 
@@ -83,7 +81,9 @@
     const urlParams = new URLSearchParams(location.search);
     let identifier = urlParams.get('id');
     const intervalSec = 9;
-    const proxy = "https://proxy.anhsang.qzz.io/?url=";
+    
+    // ĐƯỜNG DẪN PROXY VERCEL CỦA BẠN
+    const proxy = "https://yt-live-proxy.vercel.app/?url=";
     const TIMEOUT = 12000;
 
     const backgrounds = [
@@ -97,7 +97,7 @@
       const bg = backgrounds[Math.floor(Math.random()*backgrounds.length)];
       container.style.backgroundImage = `url('${bg}')`;
       container.style.backgroundRepeat = 'no-repeat';
-      container.style.backgroundSize = 'cover';       // tránh repeat theo cả chiều rộng + cao
+      container.style.backgroundSize = 'cover';
       container.style.backgroundPosition = 'center';
     }
 
@@ -105,10 +105,8 @@
       setRandomBackground(document.getElementById('msg-container'));
     })();
 
-    // nếu có @ ở đầu thì bỏ
     if (identifier && identifier.startsWith('@')) identifier = identifier.substring(1);
 
-    // fetch with timeout helper
     async function fetchWithTimeout(url, options = {}, timeout = TIMEOUT){
       return Promise.race([
         fetch(url, options),
@@ -126,7 +124,8 @@
       ];
       for (const url of urls) {
         try {
-          const res = await fetchWithTimeout(proxy + encodeURIComponent(url));
+          // GỌI THÊM &raw=true ĐỂ LẤY RAW HTML TỪ VERCEL TRẢ VỀ
+          const res = await fetchWithTimeout(proxy + encodeURIComponent(url) + "&raw=true");
           const html = await res.text();
           const match = html.match(/rel=["']canonical["'] href=["']https:\/\/www\.youtube\.com\/channel\/(UC[\w-]{22})["']/i);
           if (match) return match[1];
@@ -137,13 +136,29 @@
       return null;
     }
 
+    // 🛠️ ĐÃ THÊM &raw=true VÀ THỰC HIỆN LOGIC QUET THEO /LIKE/LIKE TRÊN TRÌNH DUYỆT TRỰC TIẾP
     async function checkLive(channelId){
       try {
-        const res = await fetchWithTimeout(proxy + encodeURIComponent(`https://www.youtube.com/channel/${channelId}/live`));
-        const html = await res.text();
-        if (html.includes('"isLive":true')) {
-          const m = html.match(/"videoId":"([\w-]{11})"/);
-          if (m) return m[1];
+        const targetUrl = `https://www.youtube.com/channel/${channelId}/live`;
+        // Gửi lệnh proxy kèm theo tham số &raw=true ép Vercel trả về mã nguồn thô hoàn toàn
+        const res = await fetchWithTimeout(proxy + encodeURIComponent(targetUrl) + "&raw=true");
+        
+        // Nếu trang lỗi hoặc chuyển hướng (kênh offline) thì ngắt
+        if (res.status === 301 || res.status === 302 || res.status === 404) return null;
+
+        const htmlContent = await res.text();
+
+        // 🎯 LỌC DỰA TRÊN REGEX LIKE NHƯ BẠN YÊU CẦU TỪ FILE RAW HTML TRẢ VỀ
+        const likeRegex = /"apiUrl"\s*:\s*"\/youtubei\/v1\/like\/like".*?"videoId"\s*:\s*"([\w-]{11})"/s;
+        const match = htmlContent.match(likeRegex);
+        if (match && match[1]) {
+          return match[1]; // Trả về videoId chính xác của phòng live
+        }
+
+        // Dự phòng 2: Quét watchEndpoint phòng live chuẩn của YouTube
+        const ytCommandMatch = htmlContent.match(/"watchEndpoint"\s*:\s*\{\s*"videoId"\s*:\s*"([\w-]{11})"/);
+        if (ytCommandMatch && ytCommandMatch[1]) {
+          return ytCommandMatch[1];
         }
       } catch (e) {
         console.warn("checkLive error:", e.message);
@@ -151,11 +166,13 @@
       return null;
     }
 
-    // parse avatar từ channel page
     async function fetchChannelAvatar(channelId){
       try {
-        const res = await fetchWithTimeout(proxy + encodeURIComponent(`https://www.youtube.com/channel/${channelId}`));
+        const targetUrl = `https://www.youtube.com/channel/${channelId}`;
+        // GỌI THÊM &raw=true ĐỂ LẤY FILE HTML GỐC CHO HÀM AVATAR
+        const res = await fetchWithTimeout(proxy + encodeURIComponent(targetUrl) + "&raw=true");
         const html = await res.text();
+        
         let m = html.match(/<meta\s+property=["']og:image["']\s+content=["']([^"']+)["']/i);
         if (m && m[1]) return normalizeAvatarUrl(m[1]);
         m = html.match(/<link\s+rel=["']image_src["']\s+href=["']([^"']+)["']/i);
@@ -195,7 +212,6 @@
       if (el) el.textContent = text;
     }
 
-    // show example loop giống original (chỉ tạo nếu chưa tồn tại)
     function showErrorExampleLoop(container){
       if (container.querySelector('.example')) return;
       const example = document.createElement('div');
@@ -238,16 +254,14 @@
       }, 1000);
     }
 
-    // KHỞI ĐỘNG chính
     async function start(){
       try {
-        // Nếu không có identifier: hiển thị đúng thông báo của file gốc và vòng example, rồi dừng.
         if (!identifier) {
           const container = document.getElementById('msg-container');
           container.innerHTML = `<div id="msg">⚠️ Wrong URL! Please Read <a href="https://github.com/AppleSang/yt-chat-fetcher?tab=readme-ov-file#how-to-setup-but-detailed" target="_blank">Guide</a> Again `;
           setRandomBackground(container);
           showErrorExampleLoop(container);
-          return; // dừng flow ở đây
+          return;
         }
 
         updateMsg('🔍 Finding Your Channel...');
@@ -259,7 +273,6 @@
           return;
         }
 
-        // lấy avatar và hiển thị fixed giữa trang (không show "Loading channel avatar..")
         const avatarUrl = await fetchChannelAvatar(chId);
         if (avatarUrl) showAvatarFixed(avatarUrl, true);
         else showAvatarFixed(null);
@@ -279,7 +292,6 @@
       }
     }
 
-    // gọi start
     start();
   </script>
 </body>
