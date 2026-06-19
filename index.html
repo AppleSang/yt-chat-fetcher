@@ -124,7 +124,6 @@
       ];
       for (const url of urls) {
         try {
-          // GỌI THÊM &raw=true ĐỂ LẤY RAW HTML TỪ VERCEL TRẢ VỀ
           const res = await fetchWithTimeout(proxy + encodeURIComponent(url) + "&raw=true");
           const html = await res.text();
           const match = html.match(/rel=["']canonical["'] href=["']https:\/\/www\.youtube\.com\/channel\/(UC[\w-]{22})["']/i);
@@ -136,26 +135,24 @@
       return null;
     }
 
-    // 🛠️ ĐÃ THÊM &raw=true VÀ THỰC HIỆN LOGIC QUET THEO /LIKE/LIKE TRÊN TRÌNH DUYỆT TRỰC TIẾP
+    // Hàm lấy mã HTML raw và lọc videoId dựa trên API của nút Like nhằm đảm bảo độ chính xác
     async function checkLive(channelId){
       try {
         const targetUrl = `https://www.youtube.com/channel/${channelId}/live`;
-        // Gửi lệnh proxy kèm theo tham số &raw=true ép Vercel trả về mã nguồn thô hoàn toàn
         const res = await fetchWithTimeout(proxy + encodeURIComponent(targetUrl) + "&raw=true");
         
-        // Nếu trang lỗi hoặc chuyển hướng (kênh offline) thì ngắt
         if (res.status === 301 || res.status === 302 || res.status === 404) return null;
 
         const htmlContent = await res.text();
 
-        // 🎯 LỌC DỰA TRÊN REGEX LIKE NHƯ BẠN YÊU CẦU TỪ FILE RAW HTML TRẢ VỀ
+        // Khóa chặt bằng Regex lọc theo hành động /like/like
         const likeRegex = /"apiUrl"\s*:\s*"\/youtubei\/v1\/like\/like".*?"videoId"\s*:\s*"([\w-]{11})"/s;
         const match = htmlContent.match(likeRegex);
         if (match && match[1]) {
-          return match[1]; // Trả về videoId chính xác của phòng live
+          return match[1]; 
         }
 
-        // Dự phòng 2: Quét watchEndpoint phòng live chuẩn của YouTube
+        // Dự phòng: Tìm kiếm watchEndpoint gốc của YouTube Live
         const ytCommandMatch = htmlContent.match(/"watchEndpoint"\s*:\s*\{\s*"videoId"\s*:\s*"([\w-]{11})"/);
         if (ytCommandMatch && ytCommandMatch[1]) {
           return ytCommandMatch[1];
@@ -169,7 +166,6 @@
     async function fetchChannelAvatar(channelId){
       try {
         const targetUrl = `https://www.youtube.com/channel/${channelId}`;
-        // GỌI THÊM &raw=true ĐỂ LẤY FILE HTML GỐC CHO HÀM AVATAR
         const res = await fetchWithTimeout(proxy + encodeURIComponent(targetUrl) + "&raw=true");
         const html = await res.text();
         
@@ -193,9 +189,15 @@
       return url;
     }
 
+    document.addEventListener("DOMContentLoaded", () => {
+      const container = document.getElementById('msg-container');
+      if (container) setRandomBackground(container);
+    });
+
     function showAvatarFixed(url, spinning = true){
       const wrapper = document.getElementById('avatar-fixed');
       const img = document.getElementById('avatar-img');
+      if (!wrapper || !img) return;
       if (!url) {
         wrapper.style.display = 'none';
         img.src = '';
@@ -239,15 +241,19 @@
       updateMsg(`👀 Stream not found, retrying in ${s} seconds...`);
       const t = setInterval(async ()=>{
         s--;
-        if (s>0) updateMsg(`👀 Stream not found, retrying in ${s} seconds...`);
-        else {
+        if (s > 0) {
+          updateMsg(`👀 Stream not found, retrying in ${s} seconds...`);
+        } else {
           clearInterval(t);
           updateMsg('🔁 Retrying...');
           const vid = await checkLive(chId);
-          if (vid) {
+          
+          // 🔥 ĐIỀU KIỆN KHÓA CHẶT: Chỉ khi vid tồn tại (đang live thực sự) mới chuyển hướng đẩy sang chat
+          if (vid && vid.length === 11) {
             showAvatarFixed(null, false);
             window.location.href = `https://www.youtube.com/live_chat?is_popout=1&v=${vid}`;
           } else {
+            // Ngược lại nếu hàm checkLive trả về null (Offline), tiếp tục vòng lặp đếm ngược
             startCountdown(chId, intervalSec);
           }
         }
@@ -279,10 +285,13 @@
 
         updateMsg('🟡 Getting Livestream Code...');
         const vid = await checkLive(chId);
-        if (vid) {
+        
+        // 🔥 ĐIỀU KIỆN KHÓA CHẶT: Chỉ khi vid tồn tại (đang live thực sự) mới chuyển hướng đẩy sang chat
+        if (vid && vid.length === 11) {
           showAvatarFixed(null, false);
           window.location.href = `https://www.youtube.com/live_chat?is_popout=1&v=${vid}`;
         } else {
+          // Nếu không tìm thấy luồng Live hợp lệ (Trả về null), bắt đầu kích hoạt chế độ đếm ngược chờ đợi
           startCountdown(chId, intervalSec);
         }
       } catch (e) {
