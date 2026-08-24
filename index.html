@@ -28,6 +28,17 @@
     }
 
     #msg { font-size: 2rem; font-weight:700; color:#111; margin:0; position:relative; z-index:2; }
+    .obs-permission-warning {
+      margin: 0 0 12px;
+      padding: 10px 14px;
+      border: 1px solid #dc2626;
+      border-radius: 12px;
+      background: rgba(254, 226, 226, 0.96);
+      color: #991b1b;
+      font-size: 0.95rem;
+      font-weight: 700;
+      line-height: 1.35;
+    }
 
     .example {
       font-size: 1rem;
@@ -73,11 +84,73 @@
 
   <div class="stage">
     <div id="msg-container">
-      <div id="msg">Checking Status Youtube-Stream ...</div>
+      <div id="msg" data-i18n="checkingYoutube">🔎 yt-chat-fetcher // AppleSang 🍎</div>
     </div>
   </div>
 
   <script>
+    const translations = {
+      vi: {
+        pageTitle: 'yt-chat-fetcher // AppleSang',
+        checkingYoutube: 'Đang kiểm tra trạng thái livestream YouTube...',
+        wrongUrlPrefix: '⚠️ URL không hợp lệ! Vui lòng đọc lại ',
+        guide: 'hướng dẫn',
+        wrongUrlSuffix: '.',
+        findingChannel: '🔍 Đang tìm kênh của bạn...',
+        channelNotFound: "❌ Không tìm thấy kênh '{identifier}'. Vui lòng kiểm tra lại!",
+        exampleUrl: 'Ví dụ URL:',
+        streamNotFound: '👀 Chưa tìm thấy livestream, thử lại sau {seconds} giây...',
+        retrying: '🔁 Đang thử lại...',
+        gettingLive: '🟡 Đang kiểm tra livestream...',
+        obsPermissionWarning: '⚠ OBS: hãy đặt Page permissions thành Read OBS Data ở trong Properties của Browser Source.',
+        waitingForObs: '⏳ Đang chờ OBS bắt đầu stream...'
+      },
+      en: {
+        pageTitle: 'yt-chat-fetcher // AppleSang',
+        checkingYoutube: 'Checking YouTube livestream status...',
+        wrongUrlPrefix: '⚠️ Wrong URL! Please read the ',
+        guide: 'guide',
+        wrongUrlSuffix: ' again.',
+        findingChannel: '🔍 Finding your channel...',
+        channelNotFound: "❌ Cannot find channel '{identifier}'. Please check it again!",
+        exampleUrl: 'Example URL:',
+        streamNotFound: '👀 Stream not found, retrying in {seconds} seconds...',
+        retrying: '🔁 Retrying...',
+        gettingLive: '🟡 Getting livestream code...',
+        obsPermissionWarning: '⚠ OBS: Set the Page permissions to "Read OBS Data" in the Browser Source properties.',
+        waitingForObs: '⏳ Waiting for OBS to start streaming...'
+      }
+    };
+
+    let language = 'en';
+
+    function t(key, values = {}) {
+      const text = translations[language][key] || translations.en[key] || key;
+      return text.replace(/\{(\w+)\}/g, (_, name) => values[name] ?? `{${name}}`);
+    }
+
+    async function detectLanguageByIp() {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 2500);
+
+      try {
+        const response = await fetch('https://ipwho.is/', { signal: controller.signal });
+        const location = await response.json();
+        if (response.ok && location.success && location.country_code === 'VN') {
+          language = 'vi';
+        }
+      } catch (error) {
+        console.warn('Could not determine country from IP:', error.message);
+      } finally {
+        clearTimeout(timeout);
+      }
+
+      document.documentElement.lang = language;
+      document.title = t('pageTitle');
+      const initialMessage = document.querySelector('[data-i18n="checkingYoutube"]');
+      if (initialMessage) initialMessage.textContent = t('checkingYoutube');
+    }
+
     const urlParams = new URLSearchParams(location.search);
     let identifier = urlParams.get('id');
     const intervalSec = 6;
@@ -223,14 +296,23 @@
       if (el) el.textContent = text;
     }
 
+    function showObsPermissionWarning(){
+      const container = document.getElementById('msg-container');
+      if (!container || container.querySelector('.obs-permission-warning')) return;
+      const warning = document.createElement('div');
+      warning.className = 'obs-permission-warning';
+      warning.textContent = t('obsPermissionWarning');
+      container.insertBefore(warning, container.firstChild);
+    }
+
     function showErrorExampleLoop(container){
       if (container.querySelector('.example')) return;
       const example = document.createElement('div');
       example.className = 'example';
       container.appendChild(example);
       const texts = [
-        'Example URL: https://applesang.github.io/yt-chat-fetcher/?id=UCEcZC1dyDrhWueALsmutdHA',
-        'Example URL: https://applesang.github.io/yt-chat-fetcher/?id=NotRealSang'
+        `${t('exampleUrl')} https://applesang.github.io/yt-chat-fetcher/?id=UCEcZC1dyDrhWueALsmutdHA`,
+        `${t('exampleUrl')} https://applesang.github.io/yt-chat-fetcher/?id=NotRealSang`
       ];
       let index = 0;
       function cycle(){
@@ -245,44 +327,59 @@
       setTimeout(cycle, 50);
     }
 
+    let countdownTimer = null;
+
     function startCountdown(chId, sec){
+      if (countdownTimer) clearInterval(countdownTimer);
       let s = sec;
-      updateMsg(`👀 Stream not found, retrying in ${s} seconds...`);
-      const t = setInterval(async ()=>{
+      updateMsg(t('streamNotFound', { seconds: s }));
+      countdownTimer = setInterval(async ()=>{
         s--;
         if (s > 0) {
-          updateMsg(`👀 Stream not found, retrying in ${s} seconds...`);
+          updateMsg(t('streamNotFound', { seconds: s }));
         } else {
-          clearInterval(t);
-          updateMsg('🔁 Retrying...');
-          const vid = await checkLive(chId);
-          
-          // Chỉ đẩy đi khi tìm thấy videoId từ luồng phát trực tiếp thật sự
-          if (vid && vid.length === 11) {
-            showAvatarFixed(null, false);
-            window.location.href = `https://www.youtube.com/live_chat?is_popout=1&v=${vid}`;
-          } else {
-            // Nếu không phát trực tiếp, kích hoạt lại vòng lặp chờ 9 giây tiếp theo
-            startCountdown(chId, intervalSec);
-          }
+          clearInterval(countdownTimer);
+          countdownTimer = null;
+          updateMsg(t('retrying'));
+          fetchLiveChat(chId);
         }
       }, 1000);
     }
 
+    async function fetchLiveChat(chId){
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+      updateMsg(t('gettingLive'));
+      const vid = await checkLive(chId);
+
+      if (vid && vid.length === 11) {
+        showAvatarFixed(null, false);
+        window.location.href = `https://www.youtube.com/live_chat?is_popout=1&v=${vid}`;
+      } else {
+        startCountdown(chId, intervalSec);
+      }
+    }
+
+    let hasStartedFetching = false;
+
     async function start(){
+      if (hasStartedFetching) return;
+      hasStartedFetching = true;
       try {
         if (!identifier) {
           const container = document.getElementById('msg-container');
-          container.innerHTML = `<div id="msg">⚠️ Wrong URL! Please Read <a href="https://github.com/AppleSang/yt-chat-fetcher?tab=readme-ov-file#how-to-setup-but-detailed" target="_blank">Guide</a> Again `;
+          container.innerHTML = `<div id="msg">${t('wrongUrlPrefix')}<a href="https://github.com/AppleSang/yt-chat-fetcher?tab=readme-ov-file#how-to-setup-but-detailed" target="_blank">${t('guide')}</a>${t('wrongUrlSuffix')}</div>`;
           setRandomBackground(container);
           showErrorExampleLoop(container);
           return;
         }
 
-        updateMsg('🔍 Finding Your Channel...');
+        updateMsg(t('findingChannel'));
         const chId = await resolveChannelId(identifier);
         if (!chId) {
-          updateMsg(`❌ Can't Found Channel With '${identifier}'. Please re-check!`);
+          updateMsg(t('channelNotFound', { identifier }));
           const container = document.getElementById('msg-container');
           showErrorExampleLoop(container);
           return;
@@ -292,25 +389,41 @@
         if (avatarUrl) showAvatarFixed(avatarUrl, true);
         else showAvatarFixed(null);
 
-        updateMsg('🟡 Getting Livestream Code...');
-        const vid = await checkLive(chId);
-        
-        // Chỉ đẩy đi khi tìm thấy videoId từ luồng phát trực tiếp thật sự
-        if (vid && vid.length === 11) {
-          showAvatarFixed(null, false);
-          window.location.href = `https://www.youtube.com/live_chat?is_popout=1&v=${vid}`;
-        } else {
-          // Kích hoạt bộ đếm ngược 9 giây thử lại nếu kênh đang offline
-          startCountdown(chId, intervalSec);
-        }
+        startAfterChannelIsReady(chId);
       } catch (e) {
         console.warn("start error:", e.message);
         showAvatarFixed(null);
+        hasStartedFetching = false;
         setTimeout(start, TIMEOUT);
       }
     }
 
-    start();
+    function startAfterChannelIsReady(chId){
+      if (!window.obsstudio || typeof window.obsstudio.getControlLevel !== 'function') {
+        fetchLiveChat(chId);
+        return;
+      }
+
+      window.addEventListener('obsStreamingStarted', () => fetchLiveChat(chId), { once: true });
+
+      window.obsstudio.getControlLevel((level) => {
+        if (level < 1 || typeof window.obsstudio.getStatus !== 'function') {
+          showObsPermissionWarning();
+          fetchLiveChat(chId);
+          return;
+        }
+
+        window.obsstudio.getStatus((status) => {
+          if (status.streaming) {
+            fetchLiveChat(chId);
+          } else {
+            updateMsg(t('waitingForObs'));
+          }
+        });
+      });
+    }
+
+    detectLanguageByIp().finally(start);
   </script>
 </body>
 </html>
