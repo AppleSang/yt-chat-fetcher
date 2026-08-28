@@ -210,38 +210,67 @@
 
     // 🛠️ HÀM CHECK LIVE KIỂM TRA PHẢI CÓ "isLive":true THÌ MỚI ĐẨY ĐI
     async function checkLive(channelId){
+      console.log(`[checkLive] Bắt đầu kiểm tra channelId: ${channelId}`);
+
+      // Cách 1: HTML parsing
       try {
         const targetUrl = `https://www.youtube.com/channel/${channelId}/live`;
-        // Lấy mã HTML thô hoàn toàn từ proxy Vercel
+        console.log(`[checkLive] Cách 1: Gọi proxy HTML...`);
         const res = await fetchWithTimeout(proxy + encodeURIComponent(targetUrl) + "&raw=true");
+        console.log(`[checkLive] Cách 1: Response status = ${res.status}`);
         
-        if (res.status === 301 || res.status === 302 || res.status === 404) return null;
+        if (res.status === 301 || res.status === 302 || res.status === 404) {
+          console.log(`[checkLive] Cách 1: Bỏ qua (status ${res.status})`);
+        } else {
+          const htmlContent = await res.text();
+          console.log(`[checkLive] Cách 1: Đã nhận HTML ${htmlContent.length} ký tự`);
 
-        const htmlContent = await res.text();
+          const hasLiveSignal = htmlContent.includes('"isLive":true') || htmlContent.includes('"isLiveStream":true') || htmlContent.includes('iconType":"LIVE"');
+          console.log(`[checkLive] Cách 1: hasLiveSignal = ${hasLiveSignal}`);
+          
+          if (hasLiveSignal) {
+            const likeRegex = /"apiUrl"\s*:\s*"\/youtubei\/v1\/like\/like".*?"videoId"\s*:\s*"([\w-]{11})"/s;
+            const match = htmlContent.match(likeRegex);
+            if (match && match[1]) {
+              console.log(`[checkLive] Cách 1: Tìm thấy videoId via likeRegex = ${match[1]}`);
+              return match[1]; 
+            }
+            console.log(`[checkLive] Cách 1: likeRegex không khớp`);
 
-        // 1. KIỂM TRA ĐIỀU KIỆN TIÊN QUYẾT: Dữ liệu raw bắt buộc phải chứa dấu hiệu đang Live
-        const hasLiveSignal = htmlContent.includes('"isLive":true') || htmlContent.includes('"isLiveStream":true') || htmlContent.includes('iconType":"LIVE"');
-        
-        if (!hasLiveSignal) {
-          return null; // Trả về null ngay nếu kiểm tra thấy đang Offline (isLive = false)
-        }
-
-        // 2. NẾU ĐANG LIVE (TRUE): Thực hiện quét bóc tách lấy videoId tương ứng
-        // Quét dựa trên API của nút Like (như bạn yêu cầu)
-        const likeRegex = /"apiUrl"\s*:\s*"\/youtubei\/v1\/like\/like".*?"videoId"\s*:\s*"([\w-]{11})"/s;
-        const match = htmlContent.match(likeRegex);
-        if (match && match[1]) {
-          return match[1]; 
-        }
-
-        // Dự phòng: Quét watchEndpoint phòng live chính thức
-        const ytCommandMatch = htmlContent.match(/"watchEndpoint"\s*:\s*\{\s*"videoId"\s*:\s*"([\w-]{11})"/);
-        if (ytCommandMatch && ytCommandMatch[1]) {
-          return ytCommandMatch[1];
+            const ytCommandMatch = htmlContent.match(/"watchEndpoint"\s*:\s*\{\s*"videoId"\s*:\s*"([\w-]{11})"/);
+            if (ytCommandMatch && ytCommandMatch[1]) {
+              console.log(`[checkLive] Cách 1: Tìm thấy videoId via watchEndpoint = ${ytCommandMatch[1]}`);
+              return ytCommandMatch[1];
+            }
+            console.log(`[checkLive] Cách 1: watchEndpoint không khớp → chuyển cách 2`);
+          } else {
+            console.log(`[checkLive] Cách 1: Không phát hiện tín hiệu LIVE → chuyển cách 2`);
+          }
         }
       } catch (e) {
-        console.warn("checkLive error:", e.message);
+        console.warn(`[checkLive] Cách 1 lỗi:`, e.message);
       }
+
+      // Cách 2 (Fallback): ?raw=true → text response
+      try {
+        const fallbackUrl = `https://www.youtube.com/channel/${channelId}/live?raw=true`;
+        console.log(`[checkLive] Cách 2: Gọi proxy ?raw=true...`);
+        const res2 = await fetchWithTimeout(proxy + encodeURIComponent(fallbackUrl));
+        console.log(`[checkLive] Cách 2: Response status = ${res2.status}`);
+        if (res2.status === 200) {
+          const text = (await res2.text()).trim();
+          console.log(`[checkLive] Cách 2: Response text = "${text}" (length=${text.length})`);
+          if (text && text.length >= 10 && text.length <= 12) {
+            console.log(`[checkLive] Cách 2: Trả về videoId = ${text}`);
+            return text;
+          }
+          console.log(`[checkLive] Cách 2: Text không phải videoId hợp lệ`);
+        }
+      } catch (e) {
+        console.warn(`[checkLive] Cách 2 lỗi:`, e.message);
+      }
+
+      console.log(`[checkLive] Không tìm thấy videoId`);
       return null;
     }
 
