@@ -27,7 +27,26 @@
       box-shadow: 0 6px 20px rgba(0,0,0,0.06);
     }
 
-    #msg { font-size: 2rem; font-weight:700; color:#111; margin:0; position:relative; z-index:2; }
+    #msg {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    #msg .grad {
+      background: linear-gradient(90deg, #000, #fff, #000);
+      background-size: 200% 100%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientShift 4s ease-in-out infinite;
+    }
+
+    #msg .emoji {
+      -webkit-text-fill-color: initial;
+    }
     .obs-permission-warning {
       margin: 0 0 12px;
       padding: 10px 14px;
@@ -73,6 +92,7 @@
     .avatar-fixed img { width:100%; height:100%; object-fit:cover; border-radius:50%; display:block; backface-visibility:hidden; }
     .spin { animation: spin 3s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    @keyframes gradientShift { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 
     @media (max-width:480px) { :root { --avatar-size: 96px; } #msg { font-size:1.2rem; } }
   </style>
@@ -84,7 +104,7 @@
 
   <div class="stage">
     <div id="msg-container">
-      <div id="msg" data-i18n="checkingYoutube">🔎 yt-chat-fetcher // AppleSang 🍎</div>
+      <div id="msg" data-i18n="checkingYoutube"><span class="emoji">🔎</span><span class="grad"> yt-chat-fetcher // AppleSang</span><span class="emoji">🍎</span></div>
     </div>
   </div>
 
@@ -92,41 +112,45 @@
     const translations = {
       vi: {
         pageTitle: 'yt-chat-fetcher // AppleSang',
-        checkingYoutube: 'Đang kiểm tra trạng thái livestream YouTube...',
-        wrongUrlPrefix: '⚠️ URL không hợp lệ! Vui lòng đọc lại ',
+        checkingYoutube: { emoji: '🔎', text: ' yt-chat-fetcher // AppleSang', suffix: '🍎' },
+        wrongUrl: { emoji: '⚠️', text: ' URL không hợp lệ! Vui lòng đọc lại ' },
         guide: 'hướng dẫn',
-        wrongUrlSuffix: '.',
-        findingChannel: '🔍 Đang tìm kênh của bạn...',
-        channelNotFound: "❌ Không tìm thấy kênh '{identifier}'. Vui lòng kiểm tra lại!",
-        exampleUrl: 'Ví dụ URL:',
-        streamNotFound: '👀 Chưa tìm thấy livestream, thử lại sau {seconds} giây...',
-        retrying: '🔁 Đang thử lại...',
-        gettingLive: '🟡 Đang kiểm tra livestream...',
-        obsPermissionWarning: '⚠ OBS: hãy đặt Page permissions thành Read OBS Data ở trong Properties của Browser Source.',
-        waitingForObs: '⏳ Đang chờ OBS bắt đầu stream...'
+        findingChannel: { emoji: '🔍', text: ' Đang tìm kênh của bạn...' },
+        channelNotFound: { emoji: '❌', text: " Không tìm thấy kênh '{identifier}'. Vui lòng kiểm tra lại!" },
+        exampleUrl: { text: 'Ví dụ URL:' },
+        streamNotFound: { emoji: '👀', text: ' Chưa tìm thấy livestream, thử lại sau {seconds} giây...' },
+        retrying: { emoji: '🔁', text: ' Đang thử lại...' },
+        gettingLive: { emoji: '🟡', text: ' Đang kiểm tra livestream...' },
+        obsPermissionWarning: { emoji: '⚠️', text: ' OBS: hãy đặt Page permissions thành Read OBS Data ở trong Properties của Browser Source.' },
+        waitingForObs: { emoji: '⏳', text: ' Đang chờ OBS bắt đầu stream...' }
       },
       en: {
         pageTitle: 'yt-chat-fetcher // AppleSang',
-        checkingYoutube: 'Checking YouTube livestream status...',
-        wrongUrlPrefix: '⚠️ Wrong URL! Please read the ',
+        checkingYoutube: { emoji: '🔎', text: ' yt-chat-fetcher // AppleSang', suffix: '🍎' },
+        wrongUrl: { emoji: '⚠️', text: ' Wrong URL! Please read the ' },
         guide: 'guide',
-        wrongUrlSuffix: ' again.',
-        findingChannel: '🔍 Finding your channel...',
-        channelNotFound: "❌ Cannot find channel '{identifier}'. Please check it again!",
-        exampleUrl: 'Example URL:',
-        streamNotFound: '👀 Stream not found, retrying in {seconds} seconds...',
-        retrying: '🔁 Retrying...',
-        gettingLive: '🟡 Getting livestream code...',
-        obsPermissionWarning: '⚠ OBS: Set the Page permissions to "Read OBS Data" in the Browser Source properties.',
-        waitingForObs: '⏳ Waiting for OBS to start streaming...'
+        findingChannel: { emoji: '🔍', text: ' Finding your channel...' },
+        channelNotFound: { emoji: '❌', text: " Cannot find channel '{identifier}'. Please check it again!" },
+        exampleUrl: { text: 'Example URL:' },
+        streamNotFound: { emoji: '👀', text: ' Stream not found, retrying in {seconds} seconds...' },
+        retrying: { emoji: '🔁', text: ' Retrying...' },
+        gettingLive: { emoji: '🟡', text: ' Getting livestream code...'},
+        obsPermissionWarning: { emoji: '⚠️', text: ' OBS: Set the Page permissions to "Read OBS Data" in the Browser Source properties.' },
+        waitingForObs: { emoji: '⏳', text: ' Waiting for OBS to start streaming...' }
       }
     };
 
     let language = 'en';
 
     function t(key, values = {}) {
-      const text = translations[language][key] || translations.en[key] || key;
-      return text.replace(/\{(\w+)\}/g, (_, name) => values[name] ?? `{${name}}`);
+      const entry = translations[language][key] || translations.en[key] || key;
+      if (typeof entry === 'object') {
+        const text = entry.text.replace(/\{(\w+)\}/g, (_, name) => values[name] ?? `{${name}}`);
+        const emoji = entry.emoji ? `<span class="emoji">${entry.emoji}</span>` : '';
+        const suffix = entry.suffix ? `<span class="emoji">${entry.suffix}</span>` : '';
+        return `${emoji}<span class="grad">${text}</span>${suffix}`;
+      }
+      return entry.replace(/\{(\w+)\}/g, (_, name) => values[name] ?? `{${name}}`);
     }
 
     async function detectLanguageByIp() {
@@ -148,7 +172,7 @@
       document.documentElement.lang = language;
       document.title = t('pageTitle');
       const initialMessage = document.querySelector('[data-i18n="checkingYoutube"]');
-      if (initialMessage) initialMessage.textContent = t('checkingYoutube');
+      if (initialMessage) initialMessage.innerHTML = t('checkingYoutube');
     }
 
     const urlParams = new URLSearchParams(location.search);
@@ -292,7 +316,20 @@
 
     function updateMsg(text){
       const el = document.getElementById('msg');
-      if (el) el.textContent = text;
+      if (!el) return;
+      const temp = document.createElement('div');
+      temp.innerHTML = text;
+      const newEmoji = temp.querySelector('.emoji');
+      const newGrad = temp.querySelector('.grad');
+      const newSuffix = temp.querySelectorAll('.emoji')[1];
+      const curEmoji = el.querySelector('.emoji');
+      const curGrad = el.querySelector('.grad');
+      const curSuffix = el.querySelectorAll('.emoji')[1];
+      if (curEmoji && newEmoji) curEmoji.textContent = newEmoji.textContent;
+      if (curGrad && newGrad) curGrad.textContent = newGrad.textContent;
+      if (curSuffix && newSuffix) curSuffix.textContent = newSuffix.textContent;
+      else if (curSuffix && !newSuffix) curSuffix.remove();
+      else if (!curSuffix && newSuffix) el.appendChild(newSuffix.cloneNode(true));
     }
 
     function showObsPermissionWarning(){
@@ -300,7 +337,7 @@
       if (!container || container.querySelector('.obs-permission-warning')) return;
       const warning = document.createElement('div');
       warning.className = 'obs-permission-warning';
-      warning.textContent = t('obsPermissionWarning');
+      warning.innerHTML = t('obsPermissionWarning');
       container.insertBefore(warning, container.firstChild);
     }
 
@@ -315,7 +352,7 @@
       ];
       let index = 0;
       function cycle(){
-        example.textContent = texts[index];
+        example.innerHTML = texts[index];
         example.classList.add('show');
         setTimeout(()=> { example.classList.remove('show'); }, 4000);
         setTimeout(()=> {
@@ -369,7 +406,7 @@
       try {
         if (!identifier) {
           const container = document.getElementById('msg-container');
-          container.innerHTML = `<div id="msg">${t('wrongUrlPrefix')}<a href="https://github.com/AppleSang/yt-chat-fetcher?tab=readme-ov-file#how-to-setup-but-detailed" target="_blank">${t('guide')}</a>${t('wrongUrlSuffix')}</div>`;
+          container.innerHTML = `<div id="msg">${t('wrongUrl')}<a href="https://github.com/AppleSang/yt-chat-fetcher?tab=readme-ov-file#how-to-setup-but-detailed" target="_blank">${t('guide')}</a></div>`;
           setRandomBackground(container);
           showErrorExampleLoop(container);
           return;
