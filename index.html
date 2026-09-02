@@ -41,7 +41,6 @@
       -webkit-background-clip: text;
       background-clip: text;
       -webkit-text-fill-color: transparent;
-      animation: gradientShift 4s ease-in-out infinite;
     }
 
     #msg .emoji {
@@ -317,20 +316,45 @@
     function updateMsg(text){
       const el = document.getElementById('msg');
       if (!el) return;
-      const temp = document.createElement('div');
-      temp.innerHTML = text;
-      const newEmoji = temp.querySelector('.emoji');
-      const newGrad = temp.querySelector('.grad');
-      const newSuffix = temp.querySelectorAll('.emoji')[1];
-      const curEmoji = el.querySelector('.emoji');
-      const curGrad = el.querySelector('.grad');
-      const curSuffix = el.querySelectorAll('.emoji')[1];
-      if (curEmoji && newEmoji) curEmoji.textContent = newEmoji.textContent;
-      if (curGrad && newGrad) curGrad.textContent = newGrad.textContent;
-      if (curSuffix && newSuffix) curSuffix.textContent = newSuffix.textContent;
-      else if (curSuffix && !newSuffix) curSuffix.remove();
-      else if (!curSuffix && newSuffix) el.appendChild(newSuffix.cloneNode(true));
+      const grad = el.querySelector('.grad');
+      if (grad) {
+        const temp = document.createElement('div');
+        temp.innerHTML = text;
+        const newGrad = temp.querySelector('.grad');
+        if (newGrad) {
+          const t = document.createTextNode(newGrad.textContent);
+          grad.replaceChild(t, grad.firstChild);
+        }
+        const emojis = el.querySelectorAll('.emoji');
+        const newEmojis = temp.querySelectorAll('.emoji');
+        if (emojis[0] && newEmojis[0]) {
+          emojis[0].replaceChild(document.createTextNode(newEmojis[0].textContent), emojis[0].firstChild);
+        }
+        if (emojis[1] && newEmojis[1]) {
+          emojis[1].replaceChild(document.createTextNode(newEmojis[1].textContent), emojis[1].firstChild);
+        } else if (emojis[1] && !newEmojis[1]) {
+          emojis[1].remove();
+        } else if (!emojis[1] && newEmojis[1]) {
+          el.appendChild(newEmojis[1].cloneNode(true));
+        }
+      } else {
+        el.innerHTML = text;
+      }
     }
+
+    (function animateGradient(){
+      let pos = 0;
+      let dir = 1;
+      function tick(){
+        pos += dir * 0.5;
+        if (pos >= 100 || pos <= 0) dir *= -1;
+        document.querySelectorAll('#msg .grad').forEach(el => {
+          el.style.backgroundPosition = pos + '% 50%';
+        });
+        requestAnimationFrame(tick);
+      }
+      requestAnimationFrame(tick);
+    })();
 
     function showObsPermissionWarning(){
       const container = document.getElementById('msg-container');
@@ -377,17 +401,17 @@
           clearInterval(countdownTimer);
           countdownTimer = null;
           updateMsg(t('retrying'));
-          fetchLiveChat(chId);
+          fetchLiveChat(chId, false);
         }
       }, 1000);
     }
 
-    async function fetchLiveChat(chId){
+    async function fetchLiveChat(chId, showMsg = true){
       if (countdownTimer) {
         clearInterval(countdownTimer);
         countdownTimer = null;
       }
-      updateMsg(t('gettingLive'));
+      if (showMsg) updateMsg(t('gettingLive'));
       const vid = await checkLive(chId);
 
       if (vid && vid.length === 11) {
